@@ -66,6 +66,16 @@ class AuthService {
 
         return { accessToken, refreshToken: newRefreshToken };
     }
+
+    async signout(refreshToken: string) {
+        const payload = verifyRefreshToken(refreshToken);
+
+        if (!payload || !payload.id) throw ApiError.unauthorized("Invalid refresh token");
+
+        await db.update(usersTable).set({
+            refreshToken: null
+        }).where(eq(usersTable.id, payload.id));
+    }
 }
 
 export default AuthService;

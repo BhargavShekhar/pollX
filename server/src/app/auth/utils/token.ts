@@ -19,7 +19,7 @@ export function createAccessToken(payload: UserTokenPayload) {
 
 export function verifyAccessToken(token: string) {
     const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!);
-    return payload as JwtPayload;
+    return payload as UserTokenPayload;
 }
 
 export function createRefreshToken(payload: RefreshTokenPayload) {
@@ -32,7 +32,7 @@ export function createRefreshToken(payload: RefreshTokenPayload) {
 
 export function verifyRefreshToken(token: string) {
     const payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET!);
-    return payload as JwtPayload;
+    return payload as RefreshTokenPayload;
 }
 
 export function hashToken(token: string) {

@@ -28,19 +28,35 @@ class AuthController {
 
         const result = await this.authService.signin(data);
 
-        return ApiResponse.ok(res, "Signin successfully", result);
+        return ApiResponse.ok(res, "Signin successfull", result);
     }
 
     public async handleRefreshToken(req: Request, res: Response) {
         const header = req.headers["authorization"];
 
-        if (!header || !header.startsWith("Bearer")) throw ApiError.badRequest("Bearer token is required");
+        if (!header || !header.startsWith("Bearer ")) throw ApiError.badRequest("Bearer token is required");
 
         const refreshToken = header.split(" ")[1];
 
         if (!refreshToken) throw ApiError.badRequest("Bearer token is required");
 
-        await this.authService.refresh(refreshToken);
+        const result = await this.authService.refresh(refreshToken);
+
+        return ApiResponse.ok(res, "Token refreshed successfully", result);
+    }
+
+    public async handleSignout(req: Request, res: Response) {
+        const header = req.headers["authorization"];
+
+        if (!header || !header.startsWith("Bearer ")) throw ApiError.badRequest("Bearer token is required");
+
+        const [type, token] = header.split(" ");
+
+        if (type !== "Bearer" || !token) throw ApiError.unauthorized("Malformed authorization token");
+
+        await this.authService.signout(token);
+
+        return ApiResponse.ok(res, "Signout successfull");
     }
 }
 

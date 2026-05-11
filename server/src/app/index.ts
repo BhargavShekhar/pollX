@@ -2,6 +2,8 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import ApiError from "../common/api-error.js";
+import router from "./auth/auth.routes.js";
+import { authenticationMiddleware } from "./middleware/auth-middleware.js";
 
 function createExpressApp() {
     const app = express();
@@ -10,6 +12,10 @@ function createExpressApp() {
     app.use(cookieParser());
 
     app.get("/health", (req, res) => res.json({ healthy: true }));
+
+    app.use(authenticationMiddleware());
+
+    app.use("/api/v1/auth", router)
 
     app.use((req, res, next) => {
         next(ApiError.notfound("No such route exists"));
@@ -21,7 +27,7 @@ function createExpressApp() {
         if (error instanceof ApiError) {
             const statusCode = error.statusCode || 500;
             return res.status(statusCode).json({
-                sucess: false,
+                success: false,
                 message: { error: error.message },
                 data: null
             });

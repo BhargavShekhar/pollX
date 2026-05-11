@@ -55,7 +55,7 @@ class AuthService {
 
         if (!user || !user.refreshToken) throw ApiError.unauthorized("User not found");
 
-        if (user.refreshToken === hashToken(refreshToken)) throw ApiError.unauthorized("Invalid refresh token");
+        if (user.refreshToken !== hashToken(refreshToken)) throw ApiError.unauthorized("Invalid refresh token");
 
         const accessToken = createAccessToken({ id: user.id });
         const newRefreshToken = createRefreshToken({ id: user.id });

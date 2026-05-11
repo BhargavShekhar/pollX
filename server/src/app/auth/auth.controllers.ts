@@ -5,7 +5,7 @@ import ApiError from "../../common/api-error.js";
 import ApiResponse from "../../common/api-response.js";
 
 class AuthController {
-    private authService = new AuthService(); 
+    private authService = new AuthService();
 
     public async handleSignup(req: Request, res: Response) {
         const validateResult = signupPayloadModel.safeParse(req.body);
@@ -22,39 +22,48 @@ class AuthController {
     public async handleSignin(req: Request, res: Response) {
         const validateResult = signinPayloadModel.safeParse(req.body);
 
-         if (!validateResult.success) throw ApiError.badRequest("Validation failed");
+        if (!validateResult.success) throw ApiError.badRequest("Validation failed");
 
         const data: signinDto = validateResult.data;
 
         const result = await this.authService.signin(data);
 
+        res.cookie("refreshToken", result.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        })
+
         return ApiResponse.ok(res, "Signin successfull", result);
     }
 
     public async handleRefreshToken(req: Request, res: Response) {
-        const header = req.headers["authorization"];
+        const refreshToken = req.cookies.refreshToken;
 
-        if (!header || !header.startsWith("Bearer ")) throw ApiError.badRequest("Bearer token is required");
-
-        const refreshToken = header.split(" ")[1];
-
-        if (!refreshToken) throw ApiError.badRequest("Bearer token is required");
+        if (!refreshToken) throw ApiError.badRequest("Refresh token is required");
 
         const result = await this.authService.refresh(refreshToken);
+
+        res.cookie("refreshToken", result.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
 
         return ApiResponse.ok(res, "Token refreshed successfully", result);
     }
 
     public async handleSignout(req: Request, res: Response) {
-        const header = req.headers["authorization"];
+        const refreshToken = req.cookies.refreshToken;
 
-        if (!header || !header.startsWith("Bearer ")) throw ApiError.badRequest("Bearer token is required");
+        if (!refreshToken) throw ApiError.badRequest("Refresh token is required");
 
-        const [type, token] = header.split(" ");
+        await this.authService.signout(refreshToken);
 
-        if (type !== "Bearer" || !token) throw ApiError.unauthorized("Malformed authorization token");
-
-        await this.authService.signout(token);
+        res.clearCookie("refreshToken");
 
         return ApiResponse.ok(res, "Signout successfull");
     }

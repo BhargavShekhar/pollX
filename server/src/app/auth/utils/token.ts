@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import jwt, { type JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 export interface UserTokenPayload {
     id: string

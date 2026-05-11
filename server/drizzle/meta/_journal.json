@@ -8,6 +8,13 @@
       "when": 1778486698268,
       "tag": "0000_overjoyed_maginty",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778490896123,
+      "tag": "0001_shiny_la_nuit",
+      "breakpoints": true
     }
   ]
 }

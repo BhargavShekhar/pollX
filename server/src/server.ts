@@ -1,6 +1,6 @@
 import http from "node:http";
 
-import "dotenv/config"
+import "dotenv/config";
 import createExpressApp from "./app/index.js";
 import initializeSocket from "./socket/index.js";
 

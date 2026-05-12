@@ -1,9 +1,10 @@
 import express from "express";
-import type { Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import ApiError from "../common/api-error.js";
-import router from "./auth/auth.routes.js";
+import authRouter from "./auth/auth.routes.js";
+import pollRouter from "./poll/poll.routes.js";
 import { authenticationMiddleware } from "./middleware/auth-middleware.js";
+import type { Request, Response, NextFunction } from "express";
 
 function createExpressApp() {
     const app = express();
@@ -15,7 +16,8 @@ function createExpressApp() {
 
     app.use(authenticationMiddleware());
 
-    app.use("/api/v1/auth", router)
+    app.use("/api/v1/auth", authRouter);
+    app.use("/api/v1/poll", pollRouter);
 
     app.use((req, res, next) => {
         next(ApiError.notfound("No such route exists"));

@@ -1,5 +1,6 @@
 import { pgTable, varchar, uuid, boolean, text, timestamp } from "drizzle-orm/pg-core";
 
+// TODO can index all the foregin key
 export const usersTable = pgTable("users", {
     id: uuid("id").primaryKey().defaultRandom(),
 
@@ -21,6 +22,8 @@ export const pollsTable = pgTable("polls", {
     userId: uuid("user_id")
         .notNull()
         .references(() => usersTable.id, { onDelete: "cascade" }),
+
+    title: varchar("title", { length: 255 }).notNull(),
 
     anonymousVote: boolean("anonymous_vote").default(false),
 
@@ -47,7 +50,7 @@ export const questionsTable = pgTable("questions", {
 export const optionsTable = pgTable("options", {
     id: uuid("id").primaryKey().defaultRandom(),
 
-    option: varchar("option", { length: 500 }),
+    option: varchar("option", { length: 500 }).notNull(),
 
     questionId: uuid("question_id")
         .notNull()

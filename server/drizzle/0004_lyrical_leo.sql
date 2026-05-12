@@ -1,0 +1,1 @@
+ALTER TABLE "options" ALTER COLUMN "option" SET NOT NULL;

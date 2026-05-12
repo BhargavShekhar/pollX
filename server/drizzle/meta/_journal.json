@@ -22,6 +22,20 @@
       "when": 1778534266671,
       "tag": "0002_uneven_fallen_one",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1778602051223,
+      "tag": "0003_naive_fixer",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778615272292,
+      "tag": "0004_lyrical_leo",
+      "breakpoints": true
     }
   ]
 }

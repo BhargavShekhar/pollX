@@ -3,7 +3,7 @@ import type { Response } from "express";
 class ApiResponse {
     static ok<T>(res: Response, message = "ok", data?: T) {
         res.status(200).json({
-            sucess: true,
+            success: true,
             message,
             data
         });

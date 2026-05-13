@@ -18,7 +18,7 @@ export function authenticationMiddleware() {
             return next();
         } catch (error) {
             console.error(error);
-            return next(ApiError.unauthorized("Invalid or expired token"))
+            return next(ApiError.unauthorized("Invalid or expired token"));
         }
     }
 }

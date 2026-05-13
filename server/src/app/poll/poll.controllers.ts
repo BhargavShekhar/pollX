@@ -66,6 +66,14 @@ class PollController {
 
         return ApiResponse.created(res, "Poll publish successfully");
     }
+
+    public async voteHandler(req: Request, res: Response) {
+        const pollId = req.params.pollId;
+
+        if (!pollId || typeof pollId !== "string") throw ApiError.badRequest("Could not get pollId");
+
+        
+    }
 }
 
 export default PollController;

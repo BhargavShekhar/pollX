@@ -51,7 +51,7 @@ class PollService {
     async deletePoll({ pollId }: deletePollDto, userId: string) {
         const [deleted] = await db.delete(pollsTable).where(
             and(
-                eq(pollsTable.userId, pollId),
+                eq(pollsTable.id, pollId),
                 eq(usersTable.id, userId)
             )
         ).returning({ id: pollsTable.id });
@@ -93,6 +93,20 @@ class PollService {
         )).returning({ id: pollsTable.id });
 
         if (!publish) throw ApiError.notfound("Poll not found");
+    }
+
+    async vote(pollId: string, userId: string | undefined) {
+        const [poll] = await db.select().from(pollsTable).where(eq(pollsTable.id, pollId));
+
+        if (!poll) throw ApiError.notfound("Poll not found");
+
+        if (poll.expiresIn < new Date()) throw ApiError.badRequest("Poll expired");
+
+        if (!poll.publish) throw ApiError.forbidden("Poll not published");
+
+        if (!poll.anonymousVote && userId === undefined) throw ApiError.unauthorized("Sign in required");
+
+        
     }
 }
 

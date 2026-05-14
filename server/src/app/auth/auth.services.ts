@@ -24,7 +24,7 @@ class AuthService {
             throw ApiError.internal("User creation failed");
         }
 
-        return result;
+        return { user: result };
     }
 
     async signin({ email, password }: signinDto) {

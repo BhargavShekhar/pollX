@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import ApiError from "../common/api-error.js";
 import authRouter from "./auth/auth.routes.js";
 import pollRouter from "./poll/poll.routes.js";
+import cors from "cors";
 import { authenticationMiddleware } from "./middleware/auth-middleware.js";
 import type { Request, Response, NextFunction } from "express";
 
@@ -11,6 +12,10 @@ function createExpressApp() {
 
     app.use(express.json());
     app.use(cookieParser());
+    app.use(cors({
+        origin: process.env.FRONTEND_URL!,
+        credentials: true
+    }))
 
     app.get("/health", (req, res) => res.json({ healthy: true }));
 

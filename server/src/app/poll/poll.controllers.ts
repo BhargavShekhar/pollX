@@ -21,7 +21,7 @@ class PollController {
         return ApiResponse.created(res, "Poll created successfully", result);
     }
 
-    public async deletePostHandler(req: Request, res: Response) {
+    public async deletePollHandler(req: Request, res: Response) {
         const validateData = deletePollPayload.safeParse(req.body);
 
         if (!validateData.success) throw ApiError.badRequest("Validation failed");

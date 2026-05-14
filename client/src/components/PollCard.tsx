@@ -1,4 +1,4 @@
-import PollService from "@/services/pollService"
+import pollService from "@/services/pollService"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -27,7 +27,6 @@ function formatDate(d: string) {
 }
 
 export function PollCard({ poll, onDelete }: { poll: Poll; onDelete: (id: string) => void }) {
-    const pollService = new PollService();
 
     const navigate = useNavigate()
     const isExpired = new Date(poll.expiresIn) < new Date()

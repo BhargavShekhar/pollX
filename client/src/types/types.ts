@@ -25,7 +25,7 @@ export type CreatePollPayload = {
     title: string;
     anonymousVote: boolean;
     publish?: boolean;
-    expiresIn: string;
+    expiresIn: Date;
     questions: QuestionPayload[];
 };
 

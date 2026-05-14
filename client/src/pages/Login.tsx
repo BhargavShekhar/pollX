@@ -1,11 +1,9 @@
-import AuthService from "@/services/authService"
+import authService from "@/services/authService"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 export default function Login() {
-  const authService = new AuthService();
-
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ email: "", password: "" })

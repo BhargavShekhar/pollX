@@ -3,6 +3,9 @@ import Login from "./pages/Login"
 import Register from "./pages/Register"
 import NotFound from "./pages/NotFound"
 import Dashboard from "./pages/Dashbord"
+import CreatePoll from "./pages/CreatePoll"
+import Analytics from "./pages/Analytics"
+import PublicPoll from "./pages/PublicPoll"
 
 export function App() {
   return (
@@ -11,9 +14,9 @@ export function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard /> }/>
-        <Route path="/polls/create" element={<div>Create Poll</div>} />
-        <Route path="/polls/:pollId" element={<div>Analytics</div>} />
-        <Route path="/p/:pollId" element={<div>Public Poll</div>} />
+        <Route path="/polls/create" element={<CreatePoll />} />
+        <Route path="/polls/:pollId" element={<Analytics />} />
+        <Route path="/p/:pollId" element={<PublicPoll />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

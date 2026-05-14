@@ -64,4 +64,6 @@ class PollService {
     }
 }
 
-export default PollService;
+const pollService = new PollService();
+
+export default pollService;

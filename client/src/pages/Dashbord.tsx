@@ -1,5 +1,5 @@
+import authService from "@/services/authService"
 import { PollCard } from "@/components/PollCard"
-import AuthService from "@/services/authService"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -23,8 +23,6 @@ const MOCK_POLLS: Poll[] = [
 ]
 
 export default function Dashboard() {
-  const authService = new AuthService();
-
   const navigate = useNavigate()
   const [tab, setTab] = useState<"active" | "ended">("active")
   const [polls, setPolls] = useState<Poll[]>(MOCK_POLLS)

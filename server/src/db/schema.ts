@@ -1,6 +1,5 @@
-import { pgTable, varchar, uuid, boolean, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, varchar, uuid, boolean, text, timestamp, unique } from "drizzle-orm/pg-core";
 
-// TODO can index all the foregin key
 export const usersTable = pgTable("users", {
     id: uuid("id").primaryKey().defaultRandom(),
 
@@ -79,4 +78,7 @@ export const votesTable = pgTable("votes", {
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").$default(() => new Date())
-});
+}, (table) => [
+    unique().on(table.pollId, table.userId),
+    unique().on(table.pollId, table.sessionId)
+]);

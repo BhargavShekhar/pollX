@@ -1,6 +1,6 @@
 import ApiError from "../../common/api-error.js";
 import ApiResponse from "../../common/api-response.js";
-import { createPollPayload, deletePollPayload } from "./poll.models.js";
+import { createPollPayload, deletePollPayload, votePollPayload } from "./poll.models.js";
 import PollService from "./poll.services.js";
 import type { Request, Response } from "express";
 
@@ -69,10 +69,18 @@ class PollController {
 
     public async voteHandler(req: Request, res: Response) {
         const pollId = req.params.pollId;
-
-        if (!pollId || typeof pollId !== "string") throw ApiError.badRequest("Could not get pollId");
-
         
+        if (!pollId || typeof pollId !== "string") throw ApiError.badRequest("Could not get pollId");
+        
+        const userId = req.user?.id; 
+
+        const validateData = votePollPayload.safeParse(req.body);
+
+        if (!validateData.success) throw ApiError.badRequest("Validation failed");
+
+        await this.pollService.vote(validateData.data, pollId, userId);
+
+        return ApiResponse.created(res, "Votted successfully");
     }
 }
 

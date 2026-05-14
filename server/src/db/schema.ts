@@ -1,4 +1,4 @@
-import { pgTable, varchar, uuid, boolean, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { pgTable, varchar, uuid, boolean, text, timestamp, unique, index } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -44,7 +44,9 @@ export const questionsTable = pgTable("questions", {
         .references(() => pollsTable.id, { onDelete: "cascade" }),
 
     mandatory: boolean("mandatory").default(false)
-});
+}, (table) => [
+    index("questions_poll_id_idx").on(table.pollId)
+]);
 
 export const optionsTable = pgTable("options", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -54,7 +56,9 @@ export const optionsTable = pgTable("options", {
     questionId: uuid("question_id")
         .notNull()
         .references(() => questionsTable.id, { onDelete: "cascade" }),
-});
+}, (table) => [
+    index("options_question_id_idx").on(table.questionId)
+]);
 
 export const votesTable = pgTable("votes", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -80,5 +84,9 @@ export const votesTable = pgTable("votes", {
     updatedAt: timestamp("updated_at").$default(() => new Date())
 }, (table) => [
     unique().on(table.pollId, table.userId),
-    unique().on(table.pollId, table.sessionId)
+    unique().on(table.pollId, table.sessionId),
+    index("votes_user_id_idx").on(table.userId),
+    index("votes_option_id_idx").on(table.optionId),
+    index("votes_question_id_idx").on(table.questionId),
+    index("votes_poll_id_idx").on(table.pollId),
 ]);

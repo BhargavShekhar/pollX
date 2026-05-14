@@ -36,6 +36,13 @@
       "when": 1778615272292,
       "tag": "0004_lyrical_leo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778761513228,
+      "tag": "0005_sad_black_crow",
+      "breakpoints": true
     }
   ]
 }

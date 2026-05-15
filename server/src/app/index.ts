@@ -25,6 +25,7 @@ function createExpressApp() {
     app.use("/api/v1/poll", pollRouter);
 
     app.use((req, res, next) => {
+        if (req.path.startsWith("/socket.io")) return next();
         next(ApiError.notfound("No such route exists"));
     })
 

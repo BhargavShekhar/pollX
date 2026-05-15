@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import ApiError from "../../common/api-error.js";
 import { db } from "../../db/index.js";
-import { optionsTable, pollsTable, questionsTable, usersTable, votesTable } from "../../db/schema.js";
+import { optionsTable, pollsTable, questionsTable, votesTable } from "../../db/schema.js";
 import { io } from "../../socket/index.js";
 import type { answersDto, createPollDto, deletePollDto, votePollDto } from "./poll.models.js";
 

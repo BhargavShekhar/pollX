@@ -320,14 +320,24 @@ function VoteView({ poll }: { poll: Poll }) {
 export default function PublicPoll() {
     const { pollId } = useParams();
 
-    if (!pollId) return;
-
     const [poll, setPoll] = useState<Poll | null>(null)
+    const [fetching, setFetching] = useState(true);
+
+
     useEffect(() => {
-        pollService.publishPoll(pollId)
-            .then(r => setPoll(r.data.data))
+        if (!pollId) return
+        const load = async () => {
+            try {
+                const data = await pollService.publicPoll(pollId)
+                setPoll(data)
+            } catch {
+                // poll not found
+            } finally {
+                setFetching(false)
+            }
+        }
+        load()
     }, [pollId])
-    // const poll = MOCK_POLL
 
     if (!poll) {
         return (
@@ -336,6 +346,12 @@ export default function PublicPoll() {
             </div>
         )
     }
+
+     if (fetching) return (
+        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+            <div className="w-5 h-5 rounded-full border-2 border-[#333] border-t-white animate-spin" />
+        </div>
+    )
 
     const isExpired = new Date(poll.expiresIn) < new Date()
 

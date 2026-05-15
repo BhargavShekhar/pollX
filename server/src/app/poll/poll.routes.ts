@@ -6,8 +6,8 @@ const pollController = new PollController();
 
 const router = Router();
 
-// TODO poll/:pollId/public -> if voting is over user can check results if the poll is published
 router.post("/:pollId/vote", pollController.voteHandler.bind(pollController));
+router.get("/:pollId/public", pollController.publicPollHandler.bind(pollController));
 
 router.use(requireAuth());
 

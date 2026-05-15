@@ -62,6 +62,11 @@ class PollService {
 
         return data.data;
     }
+
+    async publicPoll(pollId: string) {
+        const { data } = await api.get(`/poll/${pollId}/public`)
+        return data.data
+    }
 }
 
 const pollService = new PollService();

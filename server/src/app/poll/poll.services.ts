@@ -136,7 +136,7 @@ class PollService {
             answeredQuestions.add(answer.questionId);
 
             const validOptions = questionOptionMap.get(answer.questionId);
-            
+
             if (!validOptions) throw ApiError.badRequest(`Invalid question: ${answer.questionId}`);
 
             if (!validOptions.has(answer.optionId)) throw ApiError.badRequest(`Invalid option for question ${answer.questionId}`);
@@ -206,6 +206,36 @@ class PollService {
 
         if (userId) await this.userVote(userId, poll, answers);
         if (sessionId && !userId) await this.anonymousVote(sessionId, poll, answers);
+    }
+
+    async publicPoll(pollId: string) {
+        const basePoll = await db.query.pollsTable.findFirst({
+            where: eq(pollsTable.id, pollId),
+
+            columns: {
+                publish: true
+            }
+        });
+
+        if (!basePoll) throw ApiError.notfound("Poll not found");
+
+        const poll = await db.query.pollsTable.findFirst({
+            where: eq(pollsTable.id, pollId),
+            with: {
+                questions: {
+                    with: {
+                        options: {
+                            with: basePoll.publish ? { votes: true } : undefined
+                        }
+                    }
+                },
+                ...(basePoll.publish && {
+                    votes: true
+                })
+            }
+        });
+
+        return poll;
     }
 }
 

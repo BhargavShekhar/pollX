@@ -32,7 +32,7 @@ class PollController {
 
         await this.pollService.deletePoll(data, userId);
 
-        return ApiResponse.created(res, "Poll deleted successfully");
+        return ApiResponse.ok(res, "Poll deleted successfully");
     }
 
     public async allPollsHandler(req: Request, res: Response) {
@@ -40,7 +40,7 @@ class PollController {
 
         const result = await this.pollService.allPolls(userId);
 
-        return ApiResponse.created(res, "Polls fetched successfully", result);
+        return ApiResponse.ok(res, "Polls fetched successfully", result);
     }
 
     public async pollHandler(req: Request, res: Response) {
@@ -52,7 +52,7 @@ class PollController {
 
         const result = await this.pollService.poll(userId, pollId);
 
-        return ApiResponse.created(res, "Polls fetched successfully", result);
+        return ApiResponse.ok(res, "Polls fetched successfully", result);
     }
 
     public async publishPollHandler(req: Request, res: Response) {
@@ -64,7 +64,7 @@ class PollController {
 
         await this.pollService.publish(userId, pollId);
 
-        return ApiResponse.created(res, "Poll publish successfully");
+        return ApiResponse.ok(res, "Poll publish successfully");
     }
 
     public async voteHandler(req: Request, res: Response) {
@@ -80,7 +80,17 @@ class PollController {
 
         await this.pollService.vote(validateData.data, pollId, userId);
 
-        return ApiResponse.created(res, "Votted successfully");
+        return ApiResponse.ok(res, "Votted successfully");
+    }
+
+    public async publicPollHandler(req: Request, res: Response) {
+        const pollId = req.params.pollId;
+
+        if (!pollId || typeof pollId !== "string") throw ApiError.badRequest("Could not get pollId");
+
+        const result = await this.pollService.publicPoll(pollId);
+
+        return ApiResponse.ok(res, "Polls fetched successfully", result);
     }
 }
 

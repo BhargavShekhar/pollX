@@ -124,7 +124,6 @@ export default function CreatePoll() {
     setLoading(true)
     try {
       await pollService.createPoll(payload);
-      console.log("payload", payload);
       toast.success("Poll created successfully");
       navigate("/dashboard")
     } catch (err: any) {

@@ -1,4 +1,4 @@
-import pollService from "@/services/pollService";
+import pollService from "@/services/pollService"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -14,49 +14,6 @@ type Poll = {
     createdAt: string
     questions: Question[]
     votes: { id: string }[]
-}
-
-// mock data — replace with real API call
-const MOCK_POLL: Poll = {
-    id: "abc123",
-    title: "Team Lunch Preferences",
-    anonymousVote: true,
-    publish: false,
-    expiresIn: new Date(Date.now() + 86400000 * 2).toISOString(),
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    votes: Array(34).fill({ id: "x" }),
-    questions: [
-        {
-            id: "q1",
-            question: "What cuisine do you prefer for team lunch?",
-            mandatory: true,
-            options: [
-                { id: "o1", option: "North Indian", votes: Array(14).fill({ id: "x" }) },
-                { id: "o2", option: "South Indian", votes: Array(8).fill({ id: "x" }) },
-                { id: "o3", option: "Chinese", votes: Array(7).fill({ id: "x" }) },
-                { id: "o4", option: "Continental", votes: Array(5).fill({ id: "x" }) },
-            ],
-        },
-        {
-            id: "q2",
-            question: "What time works best for you?",
-            mandatory: false,
-            options: [
-                { id: "o5", option: "12:00 PM", votes: Array(18).fill({ id: "x" }) },
-                { id: "o6", option: "1:00 PM", votes: Array(10).fill({ id: "x" }) },
-                { id: "o7", option: "2:00 PM", votes: Array(6).fill({ id: "x" }) },
-            ],
-        },
-        {
-            id: "q3",
-            question: "Do you have any dietary restrictions?",
-            mandatory: false,
-            options: [
-                { id: "o8", option: "Vegetarian only", votes: Array(12).fill({ id: "x" }) },
-                { id: "o9", option: "No restrictions", votes: Array(22).fill({ id: "x" }) },
-            ],
-        },
-    ],
 }
 
 function timeLeft(expiresIn: string) {
@@ -82,12 +39,10 @@ function QuestionCard({ question, index, totalVotes }: {
 }) {
     const questionVotes = question.options.reduce((a, o) => a + o.votes.length, 0)
     const skipped = totalVotes - questionVotes
-    //   const maxVotes = Math.max(...question.options.map(o => o.votes.length), 1)
     const winner = question.options.reduce((a, b) => a.votes.length > b.votes.length ? a : b)
 
     return (
         <div className="bg-[#111] border border-[#1f1f1f] rounded-2xl p-5 space-y-4">
-            {/* header */}
             <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -110,7 +65,6 @@ function QuestionCard({ question, index, totalVotes }: {
                 </div>
             </div>
 
-            {/* options breakdown */}
             <div className="space-y-3">
                 {question.options
                     .sort((a, b) => b.votes.length - a.votes.length)
@@ -149,7 +103,6 @@ function QuestionCard({ question, index, totalVotes }: {
                     })}
             </div>
 
-            {/* skipped */}
             {!question.mandatory && skipped > 0 && (
                 <p className="text-[#333] text-xs border-t border-[#1a1a1a] pt-3">
                     {skipped} respondent{skipped !== 1 ? "s" : ""} skipped this question
@@ -162,36 +115,38 @@ function QuestionCard({ question, index, totalVotes }: {
 export default function Analytics() {
     const { pollId } = useParams()
     const navigate = useNavigate()
-    const [poll, setPoll] = useState<Poll>(MOCK_POLL)
+    const [poll, setPoll] = useState<Poll | null>(null)
+    const [fetching, setFetching] = useState(true)
     const [publishing, setPublishing] = useState(false)
 
     useEffect(() => {
-        try {
-            if (!pollId) return;
+        if (!pollId) return
 
-            pollService.poll(pollId)
-                .then((r) => setPoll(r.data.data));
-        } catch (error) {
-            console.error(error);
+        const load = async () => {
+            try {
+                const data = await pollService.poll(pollId)
+                setPoll(data)
+            } catch {
+                toast.error("Failed to load poll")
+            } finally {
+                setFetching(false)
+            }
         }
+
+        load()
     }, [pollId])
 
-    const totalVotes = poll.votes.length
-    const isExpired = new Date(poll.expiresIn) < new Date()
-
     const copyLink = () => {
-        navigator.clipboard.writeText(`${window.location.origin}/p/${poll.id}`)
+        navigator.clipboard.writeText(`${window.location.origin}/p/${poll?.id}`)
         toast.success("Link copied")
     }
 
     const handlePublish = async () => {
+        if (!pollId) return
         setPublishing(true)
         try {
-            if (!pollId) return;
-
-            await pollService.publishPoll(pollId);
-
-            setPoll(prev => ({ ...prev, publish: true }))
+            await pollService.publishPoll(pollId)
+            setPoll(prev => prev ? { ...prev, publish: true } : prev)
             toast.success("Results published")
         } catch {
             toast.error("Failed to publish")
@@ -200,15 +155,23 @@ export default function Analytics() {
         }
     }
 
-    // participation rate — unique respondents vs max possible (using total votes / questions)
-    //   const avgResponsesPerQ = totalVotes / poll.questions.length
-    //   const participationRate = poll.questions.length === 0 ? 0 : Math.round(
-    //     (avgResponsesPerQ / Math.max(totalVotes, 1)) * 100
-    //   )
+    if (fetching) return (
+        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+            <div className="w-5 h-5 rounded-full border-2 border-[#333] border-t-white animate-spin" />
+        </div>
+    )
+
+    if (!poll) return (
+        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+            <p className="text-[#333] text-sm">Poll not found</p>
+        </div>
+    )
+
+    const totalVotes = poll.votes.length
+    const isExpired = new Date(poll.expiresIn) < new Date()
 
     return (
         <div className="min-h-screen bg-[#0a0a0a]">
-            {/* grid bg */}
             <div
                 className="fixed inset-0 opacity-[0.03] pointer-events-none"
                 style={{
@@ -257,7 +220,6 @@ export default function Analytics() {
             </nav>
 
             <main className="relative max-w-3xl mx-auto px-6 py-10">
-                {/* poll header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-2 mb-2">
                         {poll.publish ? (
@@ -319,7 +281,6 @@ export default function Analytics() {
                     </div>
                 )}
 
-                {/* questions */}
                 <div className="space-y-4">
                     {poll.questions.map((q, i) => (
                         <QuestionCard key={q.id} question={q} index={i} totalVotes={totalVotes} />

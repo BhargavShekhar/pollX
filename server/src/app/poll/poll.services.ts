@@ -78,7 +78,11 @@ class PollService {
             with: {
                 questions: {
                     with: {
-                        options: true
+                        options: {
+                            with: {
+                                votes: true
+                            }
+                        }
                     }
                 },
                 votes: true

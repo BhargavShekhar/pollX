@@ -26,7 +26,11 @@ function formatDate(d: string) {
     return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
 }
 
-export function PollCard({ poll, onDelete }: { poll: Poll; onDelete: (id: string) => void }) {
+export function PollCard({ poll, onDelete, onPublish }: {
+    poll: Poll;
+    onDelete: (id: string) => void;
+    onPublish: (id: string) => void
+}) {
 
     const navigate = useNavigate()
     const isExpired = new Date(poll.expiresIn) < new Date()
@@ -40,6 +44,8 @@ export function PollCard({ poll, onDelete }: { poll: Poll; onDelete: (id: string
     const handlePublish = async () => {
         try {
             await pollService.publishPoll(poll.id);
+
+            onPublish(poll.id)
 
             toast.success("Poll published");
         } catch (error) {

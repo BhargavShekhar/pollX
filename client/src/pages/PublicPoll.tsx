@@ -16,40 +16,6 @@ type Poll = {
     votes: { id: string }[]
 }
 
-// mock — replace with real API call
-// const MOCK_POLL: Poll = {
-//     id: "abc123",
-//     title: "Team Lunch Preferences",
-//     anonymousVote: true,
-//     publish: false,
-//     expiresIn: new Date(Date.now() + 86400000 * 2).toISOString(),
-//     createdAt: new Date(Date.now() - 86400000).toISOString(),
-//     votes: Array(34).fill({ id: "x" }),
-//     questions: [
-//         {
-//             id: "q1",
-//             question: "What cuisine do you prefer for team lunch?",
-//             mandatory: true,
-//             options: [
-//                 { id: "o1", option: "North Indian", votes: Array(14).fill({ id: "x" }) },
-//                 { id: "o2", option: "South Indian", votes: Array(8).fill({ id: "x" }) },
-//                 { id: "o3", option: "Chinese", votes: Array(7).fill({ id: "x" }) },
-//                 { id: "o4", option: "Continental", votes: Array(5).fill({ id: "x" }) },
-//             ],
-//         },
-//         {
-//             id: "q2",
-//             question: "What time works best for you?",
-//             mandatory: false,
-//             options: [
-//                 { id: "o5", option: "12:00 PM", votes: Array(18).fill({ id: "x" }) },
-//                 { id: "o6", option: "1:00 PM", votes: Array(10).fill({ id: "x" }) },
-//                 { id: "o7", option: "2:00 PM", votes: Array(6).fill({ id: "x" }) },
-//             ],
-//         },
-//     ],
-// }
-
 function formatDate(d: string) {
     return new Date(d).toLocaleDateString("en-IN", {
         day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",

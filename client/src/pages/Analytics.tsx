@@ -1,4 +1,5 @@
 import { QuestionCard } from "@/components/QuestionCard"
+import { socket } from "@/lib/socket"
 import pollService from "@/services/pollService"
 import type { Poll } from "@/types/types"
 import { useEffect, useState } from "react"
@@ -44,6 +45,29 @@ export default function Analytics() {
 
         load()
     }, [pollId])
+
+    useEffect(() => {
+        if (!pollId || !poll || poll.publish) return
+        if (new Date(poll.expiresIn) < new Date()) return
+
+        socket.connect()
+        socket.emit("join:poll", pollId)
+
+        socket.on("vote:new", async () => {
+            try {
+                const data = await pollService.poll(pollId)
+                setPoll(data)
+            } catch {
+                
+            }
+        })
+
+        return () => {
+            socket.emit("leave:poll", pollId)
+            socket.off("vote:new")
+            socket.disconnect()
+        }
+    }, [pollId, poll?.publish, poll?.expiresIn])
 
     const copyLink = () => {
         navigator.clipboard.writeText(`${window.location.origin}/p/${poll?.id}`)

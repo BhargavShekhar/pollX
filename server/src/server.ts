@@ -2,7 +2,7 @@ import http from "node:http";
 
 import "dotenv/config";
 import createExpressApp from "./app/index.js";
-import initializeSocket from "./socket/index.js";
+import { initializeSocket } from "./socket/index.js";
 
 async function main() {
     const PORT = process.env.PORT ||  8080;

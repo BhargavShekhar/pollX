@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import ApiError from "../../common/api-error.js";
 import { db } from "../../db/index.js";
 import { optionsTable, pollsTable, questionsTable, usersTable, votesTable } from "../../db/schema.js";
+import { io } from "../../socket/index.js";
 import type { answersDto, createPollDto, deletePollDto, votePollDto } from "./poll.models.js";
 
 type ValidatePoll = Awaited<ReturnType<PollService["validateAnswers"]>>;
@@ -54,7 +55,7 @@ class PollService {
         const [deleted] = await db.delete(pollsTable).where(
             and(
                 eq(pollsTable.id, pollId),
-                eq(usersTable.id, userId)
+                eq(pollsTable.userId, userId)
             )
         ).returning({ id: pollsTable.id });
 
@@ -206,6 +207,11 @@ class PollService {
 
         if (userId) await this.userVote(userId, poll, answers);
         if (sessionId && !userId) await this.anonymousVote(sessionId, poll, answers);
+
+        io.to(pollId).emit("vote:new", {
+            pollId,
+            totalVotes: poll.votes.length + 1
+        });
     }
 
     async publicPoll(pollId: string) {

@@ -1,10 +1,5 @@
 <p align="center">
-  <svg width="72" height="72" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="256" height="256" rx="56" fill="#0A0A0A"/>
-    <rect x="64" y="64" width="128" height="128" rx="28" fill="white"/>
-    <rect x="96" y="96" width="64" height="64" rx="14" fill="#0A0A0A"/>
-    <circle cx="182" cy="74" r="10" fill="white" fill-opacity="0.15"/>
-  </svg>
+  <img src="./client/public/logo.svg" width="72" alt="PollX Logo" />
 </p>
 
 <h1 align="center">PollX</h1>

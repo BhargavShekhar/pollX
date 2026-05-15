@@ -42,3 +42,16 @@ export type VotePollPayload = {
     sessionId?: string;
     answers: AnswerPayload[];
 };
+
+export type Option = { id: string; option: string; votes: { id: string }[] }
+export type Question = { id: string; question: string; mandatory: boolean; options: Option[] }
+export type Poll = {
+    id: string
+    title: string
+    anonymousVote: boolean
+    publish: boolean
+    expiresIn: string
+    createdAt: string
+    questions: Question[]
+    votes: { id: string }[]
+}

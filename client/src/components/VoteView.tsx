@@ -1,12 +1,24 @@
 import pollService from "@/services/pollService"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import type { Poll } from "@/types/types"
+import TokenStore from "@/services/tokenStore"
+import { useNavigate } from "react-router-dom"
 
 export function VoteView({ poll }: { poll: Poll }) {
     const [answers, setAnswers] = useState<Record<string, string>>({})
     const [submitted, setSubmitted] = useState(false)
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(false);
+
+    const nav = useNavigate();
+
+    useEffect(() => {
+        if (!poll.anonymousVote) {
+            const token = TokenStore.getAccessToken();
+
+            if (!token) nav("/login");
+        }
+    }, [poll.anonymousVote, nav])
 
     const selectOption = (questionId: string, optionId: string) => {
         setAnswers(prev => ({ ...prev, [questionId]: optionId }))
@@ -43,7 +55,7 @@ export function VoteView({ poll }: { poll: Poll }) {
             setSubmitted(true)
         } catch (err: any) {
             console.log(err?.response);
-            toast.error("Already Voted")
+            toast.error("Could not vote")
         } finally {
             setLoading(false)
         }

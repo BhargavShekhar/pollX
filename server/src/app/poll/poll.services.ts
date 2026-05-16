@@ -5,7 +5,7 @@ import { optionsTable, pollsTable, questionsTable, votesTable } from "../../db/s
 import { io } from "../../socket/index.js";
 import type { answersDto, createPollDto, deletePollDto, votePollDto } from "./poll.models.js";
 
-type ValidatePoll = Awaited<ReturnType<PollService["validateAnswers"]>>;
+type ValidatePoll = Awaited<ReturnType<PollService["validateAnswersAndReturnPoll"]>>;
 
 class PollService {
     async createPoll({
@@ -102,7 +102,11 @@ class PollService {
         if (!publish) throw ApiError.notfound("Poll not found");
     }
 
-    async validateAnswers(pollId: string, answers: answersDto[]) {
+    async validateAnswersAndReturnPoll(pollId: string, answers: answersDto[]) {
+        if (!answers.length) {
+            throw ApiError.badRequest("At least one answer is required");
+        }
+
         const poll = await db.query.pollsTable.findFirst({
             where: eq(pollsTable.id, pollId),
 
@@ -141,6 +145,12 @@ class PollService {
             if (!validOptions) throw ApiError.badRequest(`Invalid question: ${answer.questionId}`);
 
             if (!validOptions.has(answer.optionId)) throw ApiError.badRequest(`Invalid option for question ${answer.questionId}`);
+        }
+
+        for (const question of poll.questions) {
+            if (question.mandatory && !answeredQuestions.has(question.id)) {
+                throw ApiError.badRequest(`Mandatory question not answered ${question.id}`)
+            }
         }
 
         return poll;
@@ -198,7 +208,7 @@ class PollService {
     ) {
         if (!userId && !sessionId) throw ApiError.unauthorized("Can not identiffy user");
 
-        const poll: ValidatePoll = await this.validateAnswers(pollId, answers);
+        const poll: ValidatePoll = await this.validateAnswersAndReturnPoll(pollId, answers);
 
         if (poll.expiresIn < new Date()) throw ApiError.badRequest("Poll expired");
 
@@ -209,9 +219,13 @@ class PollService {
         if (userId) await this.userVote(userId, poll, answers);
         else if (sessionId) await this.anonymousVote(sessionId, poll, answers);
 
+        const totalVotes = new Set(
+            poll.votes.map(vote => (vote.userId ?? vote.sessionId))
+        ).size + 1;
+
         io.to(pollId).emit("vote:new", {
             pollId,
-            totalVotes: poll.votes.length + 1
+            totalVotes
         });
     }
 

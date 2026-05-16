@@ -6,6 +6,7 @@ import CreatePoll from "./pages/CreatePoll"
 import Analytics from "./pages/Analytics"
 import PublicPoll from "./pages/PublicPoll"
 import ProtectedRoute from "./components/ProtectedRoute"
+import HomePage from "./pages/HomePage"
 
 export function App() {
   return (
@@ -14,6 +15,7 @@ export function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/p/:pollId" element={<PublicPoll />} />
+        <Route path="/" element={<HomePage />} />
 
         <Route path="/dashboard" element={
           <ProtectedRoute><Dashboard /></ProtectedRoute>
@@ -25,8 +27,7 @@ export function App() {
           <ProtectedRoute><Analytics /></ProtectedRoute>
         } />
 
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )

@@ -43,6 +43,13 @@
       "when": 1778761513228,
       "tag": "0005_sad_black_crow",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778924717858,
+      "tag": "0006_noisy_pepper_potts",
+      "breakpoints": true
     }
   ]
 }

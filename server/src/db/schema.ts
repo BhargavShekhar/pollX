@@ -83,10 +83,21 @@ export const votesTable = pgTable("votes", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").$default(() => new Date())
 }, (table) => [
-    unique().on(table.pollId, table.userId),
-    unique().on(table.pollId, table.sessionId),
+    unique("vote_poll_user_question_unique").on(
+        table.pollId,
+        table.userId,
+        table.questionId,
+    ),
+
+    unique("vote_poll_session_question_unique").on(
+        table.pollId,
+        table.sessionId,
+        table.questionId,
+    ),
+
     index("votes_user_id_idx").on(table.userId),
     index("votes_option_id_idx").on(table.optionId),
     index("votes_question_id_idx").on(table.questionId),
     index("votes_poll_id_idx").on(table.pollId),
+    index("vote_session_id_idx").on(table.sessionId)
 ]);

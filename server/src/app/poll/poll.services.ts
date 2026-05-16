@@ -196,6 +196,7 @@ class PollService {
         pollId: string,
         userId: string | undefined
     ) {
+        if (!userId && !sessionId) throw ApiError.unauthorized("Can not identiffy user");
 
         const poll: ValidatePoll = await this.validateAnswers(pollId, answers);
 
@@ -206,7 +207,7 @@ class PollService {
         if (!poll.anonymousVote && userId === undefined) throw ApiError.unauthorized("Sign in required");
 
         if (userId) await this.userVote(userId, poll, answers);
-        if (sessionId && !userId) await this.anonymousVote(sessionId, poll, answers);
+        else if (sessionId) await this.anonymousVote(sessionId, poll, answers);
 
         io.to(pollId).emit("vote:new", {
             pollId,

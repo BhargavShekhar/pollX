@@ -1,4 +1,5 @@
 import authService from "@/services/authService"
+import TokenStore from "@/services/tokenStore"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -20,11 +21,12 @@ export default function Login() {
     }
     setLoading(true)
     try {
-      await authService.signin({
+      const result = await authService.signin({
         email: form.email,
         password: form.password
       })
 
+      TokenStore.set(result);
 
       navigate("/dashboard")
     } catch (err: any) {

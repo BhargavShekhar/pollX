@@ -43,7 +43,7 @@ class AuthService {
             refreshToken: hashToken(refreshToken)
         }).where(eq(usersTable.email, email));
 
-        return { user: user.id , accessToken, refreshToken }
+        return { user: { id: user.id} , accessToken, refreshToken }
     }
 
     async refresh(refreshToken: string) {

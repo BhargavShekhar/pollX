@@ -14,17 +14,20 @@ class AuthService {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const [result] = await db.insert(usersTable).values({
+        const [user] = await db.insert(usersTable).values({
             name,
             email,
             password: hashedPassword
         }).returning({ id: usersTable.id });
 
-        if (!result) {
+        if (!user) {
             throw ApiError.internal("User creation failed");
         }
 
-        return { user: result };
+        const accessToken = createAccessToken({ id: user.id });
+        const refreshToken = createRefreshToken({ id: user.id });
+
+        return { user, accessToken, refreshToken };
     }
 
     async signin({ email, password }: signinDto) {

@@ -19,9 +19,10 @@ function createExpressApp() {
 
     app.get("/health", (req, res) => res.json({ healthy: true }));
 
-    app.use(authenticationMiddleware());
-
     app.use("/api/v1/auth", authRouter);
+    
+    app.use(authenticationMiddleware());
+    
     app.use("/api/v1/poll", pollRouter);
 
     app.use((req, res, next) => {

@@ -1,11 +1,13 @@
 import authService from "@/services/authService"
 import TokenStore from "@/services/tokenStore"
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
+
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ email: "", password: "" })
 
@@ -28,7 +30,9 @@ export default function Login() {
 
       TokenStore.set(result);
 
-      navigate("/dashboard")
+      const to = location.state?.from || "/dashboard";
+
+      navigate(to, { replace: true })
     } catch (err: any) {
       console.error(err?.response?.data);
       toast.error("Login failed");

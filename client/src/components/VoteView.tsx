@@ -3,22 +3,28 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import type { Poll } from "@/types/types"
 import TokenStore from "@/services/tokenStore"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 
 export function VoteView({ poll }: { poll: Poll }) {
     const [answers, setAnswers] = useState<Record<string, string>>({})
     const [submitted, setSubmitted] = useState(false)
     const [loading, setLoading] = useState(false);
 
-    const nav = useNavigate();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         if (!poll.anonymousVote) {
             const token = TokenStore.getAccessToken();
 
-            if (!token) nav("/login");
+            if (!token) navigate("/login", {
+                replace: true,
+                state: {
+                    from: location.pathname + location.search
+                }
+            });
         }
-    }, [poll.anonymousVote, nav])
+    }, [poll.anonymousVote, navigate])
 
     const selectOption = (questionId: string, optionId: string) => {
         setAnswers(prev => ({ ...prev, [questionId]: optionId }))

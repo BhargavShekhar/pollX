@@ -62,7 +62,7 @@ class PollController {
 
         const userId = req.user!.id;
 
-        await this.pollService.publish(userId, pollId);
+        await this.pollService.publishResult(userId, pollId);
 
         return ApiResponse.ok(res, "Poll publish successfully");
     }

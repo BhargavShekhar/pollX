@@ -1,11 +1,9 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import ApiError from "../../common/api-error.js";
 import { db } from "../../db/index.js";
 import { optionsTable, pollsTable, questionsTable, votesTable } from "../../db/schema.js";
 import { io } from "../../socket/index.js";
-import type { answersDto, createPollDto, deletePollDto, votePollDto } from "./poll.models.js";
-
-type ValidatePoll = Awaited<ReturnType<PollService["validateAnswersAndReturnPoll"]>>;
+import type { createPollDto, deletePollDto, votePollDto } from "./poll.models.js";
 
 class PollService {
     async createPoll({
@@ -90,10 +88,12 @@ class PollService {
             }
         });
 
+        if (!poll) throw ApiError.notfound("Poll not found");
+
         return poll;
     }
 
-    async publish(userId: string, pollId: string) {
+    async publishResult(userId: string, pollId: string) {
         const [publish] = await db.update(pollsTable).set({ publish: true }).where(and(
             eq(pollsTable.userId, userId),
             eq(pollsTable.id, pollId)
@@ -102,10 +102,15 @@ class PollService {
         if (!publish) throw ApiError.notfound("Poll not found");
     }
 
-    async validateAnswersAndReturnPoll(pollId: string, answers: answersDto[]) {
-        if (!answers.length) {
-            throw ApiError.badRequest("At least one answer is required");
-        }
+    async vote({
+        sessionId,
+        answers
+    }: votePollDto,
+        pollId: string,
+        userId: string | undefined
+    ) {
+        if (!userId && !sessionId) throw ApiError.unauthorized("Can not identify user");
+        if (!answers.length) throw ApiError.badRequest("At least one answer is required");
 
         const poll = await db.query.pollsTable.findFirst({
             where: eq(pollsTable.id, pollId),
@@ -122,110 +127,76 @@ class PollService {
 
         if (!poll) throw ApiError.notfound("Poll not found");
 
-        const questionOptionMap = new Map<string, Set<string>>();
-
-        for (const question of poll.questions) {
-            questionOptionMap.set(
-                question.id,
-                new Set(
-                    question.options.map(option => option.id)
-                )
-            )
-        }
-
-        const answeredQuestions = new Set<string>();
-
-        for (const answer of answers) {
-            if (answeredQuestions.has(answer.questionId)) throw ApiError.badRequest("Duplicate question answered");
-
-            answeredQuestions.add(answer.questionId);
-
-            const validOptions = questionOptionMap.get(answer.questionId);
-
-            if (!validOptions) throw ApiError.badRequest(`Invalid question: ${answer.questionId}`);
-
-            if (!validOptions.has(answer.optionId)) throw ApiError.badRequest(`Invalid option for question ${answer.questionId}`);
-        }
-
-        for (const question of poll.questions) {
-            if (question.mandatory && !answeredQuestions.has(question.id)) {
-                throw ApiError.badRequest(`Mandatory question not answered ${question.id}`)
-            }
-        }
-
-        return poll;
-    }
-
-    async anonymousVote(sessionId: string, poll: ValidatePoll, answers: answersDto[]) {
-        await db.transaction(async (tx) => {
-            const votes = poll.votes;
-
-            const voted = votes.find(vote => vote.sessionId === sessionId);
-
-            if (voted) throw ApiError.conflict("Already voted");
-
-            const votted = await tx.insert(votesTable).values(
-                answers.map(({ optionId, questionId }) => ({
-                    optionId,
-                    questionId,
-                    pollId: poll.id,
-                    sessionId
-                }))
-            ).returning({ id: votesTable.id });
-
-            if (votted.length !== answers.length) throw ApiError.internal("Could not vote");
-        })
-    }
-
-    async userVote(userId: string, poll: ValidatePoll, answers: answersDto[]) {
-        await db.transaction(async (tx) => {
-
-            const votes = poll.votes;
-
-            const voted = votes.find(vote => vote.userId === userId);
-
-            if (voted) throw ApiError.conflict("Already voted");
-
-            const votted = await tx.insert(votesTable).values(
-                answers.map(({ optionId, questionId }) => ({
-                    optionId,
-                    questionId,
-                    pollId: poll.id,
-                    userId
-                }))
-            ).returning({ id: votesTable.id });
-
-            if (votted.length !== answers.length) throw ApiError.internal("Could not vote");
-        })
-    }
-
-    async vote({
-        sessionId,
-        answers
-    }: votePollDto,
-        pollId: string,
-        userId: string | undefined
-    ) {
-        if (!userId && !sessionId) throw ApiError.unauthorized("Can not identiffy user");
-
-        const poll: ValidatePoll = await this.validateAnswersAndReturnPoll(pollId, answers);
-
         if (poll.expiresIn < new Date()) throw ApiError.badRequest("Poll expired");
 
         if (poll.publish) throw ApiError.forbidden("Poll is closed");
 
         if (!poll.anonymousVote && userId === undefined) throw ApiError.unauthorized("Sign in required");
 
-        if (userId) await this.userVote(userId, poll, answers);
-        else if (sessionId) await this.anonymousVote(sessionId, poll, answers);
+        const questionOptionMap = new Map<string, Set<string>>();
 
-        const totalVotes = new Set(
-            poll.votes.map(vote => (vote.userId ?? vote.sessionId))
-        ).size + 1;
+        for (const questions of poll.questions) {
+            questionOptionMap.set(
+                questions.id,
+                new Set(
+                    questions.options.map(option => option.id)
+                )
+            )
+        }
+
+        const answeredQuestion = new Set<string>();
+
+        for (const answer of answers) {
+            if (answeredQuestion.has(answer.questionId))
+                throw ApiError.badRequest(`Question ${answer.questionId} answered multiple times`);
+
+            const validOption = questionOptionMap.get(answer.questionId);
+
+            if (!validOption)
+                throw ApiError.badRequest(`Invalid question answered with question id ${answer.questionId}`);
+
+            if (!validOption.has(answer.optionId))
+                throw ApiError.badRequest(`Invalid option answered for question ${answer.questionId}`);
+
+            answeredQuestion.add(answer.questionId);
+        }
+
+        for (const questions of poll.questions) {
+            if (questions.mandatory && !answeredQuestion.has(questions.id))
+                throw ApiError.badRequest(`Mandatory question ${questions.id} not answered`);
+        }
+
+        await db.transaction(async (tx) => {
+
+            const votes = poll.votes;
+
+            const voted = userId
+                ? votes.find(vote => vote.userId === userId)
+                : votes.find(vote => vote.sessionId === sessionId)
+
+            if (voted) throw ApiError.conflict("Already voted");
+
+            const votted = await tx.insert(votesTable).values(
+                answers.map(({ optionId, questionId }) => ({
+                    optionId,
+                    questionId,
+                    pollId: poll.id,
+                    ...(userId ? { userId } : { sessionId })
+                }))
+            ).returning({ id: votesTable.id });
+
+            if (votted.length !== answers.length) throw ApiError.internal("Could not vote");
+        })
+
+        const [totalVotes] = await db.select({
+            count: sql<number>`count(distinct coalesce(${votesTable.userId}, ${votesTable.sessionId}))`
+        })
+            .from(votesTable)
+            .where(eq(votesTable.pollId, pollId));
 
         io.to(pollId).emit("vote:new", {
             pollId,
-            totalVotes
+            totalVotes: Number(totalVotes?.count ?? 0)
         });
     }
 
